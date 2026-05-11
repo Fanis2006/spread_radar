@@ -12,7 +12,7 @@ string CoinbaseClient::name() const {
     return "Coinbase";
 }
 
-TokenPrice CoinbaseClient::getTicker(const string& token) {
+TokenPrice CoinbaseClient::getTokenPrice(const string& token) {
     TokenPrice price;
     price.site = name();
     price.token = token;

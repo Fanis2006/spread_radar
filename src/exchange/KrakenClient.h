@@ -1,15 +1,15 @@
 #pragma once
 
-#include "exchange/IExchangeClient.h"
+#include "exchange/PriceProvider.h"
 #include "utils/HttpClient.h"
 
 #include <string>
 
-class KrakenClient : public IExchangeClient {
+class KrakenClient : public PriceProvider {
 public:
     std::string name() const override;
 
-    TokenPrice getTicker(const std::string& symbol) override;
+    TokenPrice getTokenPrice(const std::string& symbol) override;
 
 private:
     HttpClient httpClient;

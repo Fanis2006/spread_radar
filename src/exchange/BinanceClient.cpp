@@ -12,7 +12,7 @@ string BinanceClient::name() const {
     return "Binance";
 }
 
-TokenPrice BinanceClient::getTicker(const string& token) {
+TokenPrice BinanceClient::getTokenPrice(const string& token) {
     TokenPrice price;
     price.site = name();
     price.token = token;

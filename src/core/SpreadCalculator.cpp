@@ -7,48 +7,48 @@ using namespace std;
 optional<SimulationResult> SpreadCalculator::simulate(
     const vector<TokenPrice>& prices,
     double usdtAmount,
-    const map<string, FeeConfig>& fees
+    const map<string, Fee>& fees
 ) const {
-    vector<TokenPrice> validTickers;
+    vector<TokenPrice> validPrices;
 
-    for (const auto& TokenPrice : prices) {
-        if (TokenPrice.ok && TokenPrice.bid > 0.0 && TokenPrice.ask > 0.0) {
-            validTickers.push_back(TokenPrice);
+    for (const auto& price : prices) {
+        if (price.ok && price.bid > 0.0 && price.ask > 0.0) {
+            validPrices.push_back(price);
         }
     }
 
-    if (validTickers.size() < 2) {
+    if (validPrices.size() < 2) {
         return nullopt;
     }
 
     bool foundPair = false;
     SimulationResult bestResult;
-    double bestNetProfit = -numeric_limits<double>::infinity();
+    double bestrealProfit = -numeric_limits<double>::infinity();
 
-    for (const auto& buyTicker : validTickers) {
-        for (const auto& sellTicker : validTickers) {
-            if (buyTicker.site == sellTicker.site) {
+    for (const auto& buyPrice : validPrices) {
+        for (const auto& sellPrice : validPrices) {
+            if (buyPrice.site == sellPrice.site) {
                 continue;
             }
 
-            double buyFee = 0.001;
-            double sellFee = 0.001;
+            double buyFee = 0.0;
+            double sellFee = 0.0;
 
-            if (fees.count(buyTicker.site) > 0) {
-                buyFee = fees.at(buyTicker.site).tradingFeePct;
+            if (fees.count(buyPrice.site) > 0) {
+                buyFee = fees.at(buyPrice.site).FeePct;
             }
 
-            if (fees.count(sellTicker.site) > 0) {
-                sellFee = fees.at(sellTicker.site).tradingFeePct;
+            if (fees.count(sellPrice.site) > 0) {
+                sellFee = fees.at(sellPrice.site).FeePct;
             }
 
             SimulationResult current;
 
-            current.buySite = buyTicker.site;
-            current.sellSite = sellTicker.site;
+            current.buySite = buyPrice.site;
+            current.sellSite = sellPrice.site;
 
-            current.bestAsk = buyTicker.ask;
-            current.bestBid = sellTicker.bid;
+            current.bestAsk = buyPrice.ask;
+            current.bestBid = sellPrice.bid;
 
             current.spreadAbs = current.bestBid - current.bestAsk;
             current.spreadPct = current.spreadAbs / current.bestAsk * 100.0;
@@ -58,23 +58,28 @@ optional<SimulationResult> SpreadCalculator::simulate(
 
             current.startUSDT = usdtAmount;
 
-            current.assetAmountBeforeFee = usdtAmount / current.bestAsk;
-            current.assetAmountAfterFee = current.assetAmountBeforeFee * (1.0 - buyFee);
+            double coinAmount = usdtAmount / current.bestAsk;
+            double coinAmountAfterFee = coinAmount * (1.0 - buyFee);
 
-            double usdtAfterRawSell = current.assetAmountBeforeFee * current.bestBid;
-            double usdtAfterNetSell = current.assetAmountAfterFee * current.bestBid * (1.0 - sellFee);
+            double usdtAfterRawSell = coinAmount * current.bestBid;
+            double usdtAfterNetSell = coinAmountAfterFee * current.bestBid * (1.0 - sellFee);
 
-            current.rawProfit = usdtAfterRawSell - usdtAmount;
-            current.rawProfitPct = current.rawProfit / usdtAmount * 100.0;
+            current.profit = usdtAfterRawSell - usdtAmount;
+            current.profitPct = current.profit / usdtAmount * 100.0;
 
-            current.netProfit = usdtAfterNetSell - usdtAmount;
-            current.netProfitPct = current.netProfit / usdtAmount * 100.0;
+            current.realProfit = usdtAfterNetSell - usdtAmount;
+            current.realProfitPct = current.realProfit / usdtAmount * 100.0;
 
-            current.profitable = current.netProfit > 0.0;
+            if (current.realProfit > 0.0) {
+                current.profitable = true;
+            }
+            else {
+                current.profitable = false;
+            }
 
-            if (!foundPair || current.netProfit > bestNetProfit) {
+            if (!foundPair || current.realProfit > bestrealProfit) {
                 foundPair = true;
-                bestNetProfit = current.netProfit;
+                bestrealProfit = current.realProfit;
                 bestResult = current;
             }
         }

@@ -1,4 +1,4 @@
-﻿#include "core/FeeConfig.h"
+﻿#include "core/Fee.h"
 #include "core/SpreadCalculator.h"
 
 #include "exchange/BinanceClient.h"
@@ -61,15 +61,24 @@ int main() {
 
     vector<TokenPrice> prices;
 
-    prices.push_back(binance.getTicker(symbol));
-    prices.push_back(coinbase.getTicker(symbol));
-    prices.push_back(kraken.getTicker(symbol));
+    prices.push_back(binance.getTokenPrice(symbol));
+    prices.push_back(coinbase.getTokenPrice(symbol));
+    prices.push_back(kraken.getTokenPrice(symbol));
 
-    map<string, FeeConfig> fees;
+    map<string, Fee> fees;
 
-    fees["Binance"] = FeeConfig{ 0.0 };
-    fees["Coinbase"] = FeeConfig{ 0.0 };
-    fees["Kraken"] = FeeConfig{ 0.0 };
+    Fee binanceFee;
+    binanceFee.FeePct = 0.0;
+
+    Fee coinbaseFee;
+    coinbaseFee.FeePct = 0.0;
+
+    Fee krakenFee;
+    krakenFee.FeePct = 0.0;
+
+    fees["Binance"] = binanceFee;
+    fees["Coinbase"] = coinbaseFee;
+    fees["Kraken"] = krakenFee;
 
     SpreadCalculator calculator;
     auto result = calculator.simulate(prices, simulationAmount, fees);
@@ -145,9 +154,9 @@ int main() {
         << " USDT\n";
 
     cout << "Расчётная прибыль: "
-        << simulation.rawProfit
+        << simulation.profit
         << " USDT ("
-        << simulation.rawProfitPct
+        << simulation.profitPct
         << "%)\n";
 
     return 0;

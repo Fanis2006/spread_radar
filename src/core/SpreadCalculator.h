@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/FeeConfig.h"
+#include "core/Fee.h"
 #include "core/SimulationResult.h"
 #include "core/TokenPrice.h"
 
@@ -14,6 +14,6 @@ public:
     std::optional<SimulationResult> simulate(
         const std::vector<TokenPrice>& prices,
         double usdtAmount,
-        const std::map<std::string, FeeConfig>& fees
+        const std::map<std::string, Fee>& fees
     ) const;
 };

@@ -6,24 +6,22 @@ struct SimulationResult {
     std::string buySite;
     std::string sellSite;
 
-    double bestAsk = 0.0;
-    double bestBid = 0.0;
+    double bestAsk;
+    double bestBid;
 
-    double spreadAbs = 0.0;
-    double spreadPct = 0.0;
+    double spreadAbs;
+    double spreadPct;
 
-    double buyFeePct = 0.0;
-    double sellFeePct = 0.0;
+    double buyFeePct;
+    double sellFeePct;
 
-    double startUSDT = 0.0;
-    double assetAmountBeforeFee = 0.0;
-    double assetAmountAfterFee = 0.0;
+    double startUSDT;
 
-    double rawProfit = 0.0;
-    double rawProfitPct = 0.0;
+    double profit;
+    double profitPct;
 
-    double netProfit = 0.0;
-    double netProfitPct = 0.0;
+    double realProfit;
+    double realProfitPct;
 
     bool profitable = false;
 };

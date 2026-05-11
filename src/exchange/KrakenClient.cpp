@@ -12,7 +12,7 @@ string KrakenClient::name() const {
     return "Kraken";
 }
 
-TokenPrice KrakenClient::getTicker(const string& token) {
+TokenPrice KrakenClient::getTokenPrice(const string& token) {
     TokenPrice price;
     price.site = name();
     price.token = token;
