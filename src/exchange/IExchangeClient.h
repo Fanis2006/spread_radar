@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Ticker.h"
+#include "core/TokenPrice.h"
 
 #include <string>
 
@@ -10,5 +10,5 @@ public:
 
     virtual std::string name() const = 0;
 
-    virtual Ticker getTicker(const std::string& symbol) = 0;
+    virtual TokenPrice getTicker(const std::string& symbol) = 0;
 };

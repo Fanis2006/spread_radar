@@ -5,62 +5,67 @@
 #include <exception>
 #include <string>
 
+using namespace std;
 using json = nlohmann::json;
 
-std::string KrakenClient::name() const {
+string KrakenClient::name() const {
     return "Kraken";
 }
 
-Ticker KrakenClient::getTicker(const std::string& symbol) {
-    Ticker ticker;
-    ticker.exchange = name();
-    ticker.symbol = symbol;
+TokenPrice KrakenClient::getTicker(const string& token) {
+    TokenPrice price;
+    price.site = name();
+    price.token = token;
 
     try {
-        std::string krakenSymbol = symbol;
+        string krakenSymbol;
 
-        if (symbol == "BTC-USDT") {
+        if (token == "BTC-USDT") {
             krakenSymbol = "XBTUSDT";
         }
-        else if (symbol == "ETH-USDT") {
+        else if (token == "ETH-USDT") {
             krakenSymbol = "ETHUSDT";
         }
-        else if (symbol == "SOL-USDT") {
+        else if (token == "SOL-USDT") {
             krakenSymbol = "SOLUSDT";
         }
+        else {
+            price.ok = false;
+            price.error = "Unsupported token";
+            return price;
+        }
 
-        const std::string url =
+        const string url =
             "https://api.kraken.com/0/public/Ticker?pair=" + krakenSymbol;
 
-        std::string response = httpClient.get(url);
+        string response = httpClient.get(url);
 
         json data = json::parse(response);
 
         if (!data.at("error").empty()) {
-            ticker.ok = false;
-            ticker.error = data.at("error").dump();
-            return ticker;
+            price.ok = false;
+            price.error = data.at("error").dump();
+            return price;
         }
 
         const auto& result = data.at("result");
 
         if (result.empty()) {
-            ticker.ok = false;
-            ticker.error = "Kraken returned empty result";
-            return ticker;
+            price.ok = false;
+            price.error = "Kraken returned empty result";
+            return price;
         }
 
         const auto& firstPair = result.begin().value();
 
-        ticker.ask = std::stod(firstPair.at("a").at(0).get<std::string>());
-        ticker.bid = std::stod(firstPair.at("b").at(0).get<std::string>());
-        ticker.last = std::stod(firstPair.at("c").at(0).get<std::string>());
-        ticker.ok = true;
+        price.ask = stod(firstPair.at("a").at(0).get<string>());
+        price.bid = stod(firstPair.at("b").at(0).get<string>());
+        price.ok = true;
     }
-    catch (const std::exception& e) {
-        ticker.ok = false;
-        ticker.error = e.what();
+    catch (const exception& e) {
+        price.ok = false;
+        price.error = e.what();
     }
 
-    return ticker;
+    return price;
 }

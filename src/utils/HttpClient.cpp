@@ -7,8 +7,10 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 namespace {
-    std::wstring toWideString(const std::string& value) {
+    wstring toWideString(const string& value) {
         int sizeNeeded = MultiByteToWideChar(
             CP_UTF8,
             0,
@@ -19,10 +21,10 @@ namespace {
         );
 
         if (sizeNeeded <= 0) {
-            throw std::runtime_error("Failed to convert string to wide string");
+            throw runtime_error("Failed to convert string to wide string");
         }
 
-        std::wstring result(sizeNeeded, 0);
+        wstring result(sizeNeeded, 0);
 
         MultiByteToWideChar(
             CP_UTF8,
@@ -37,21 +39,21 @@ namespace {
     }
 
     void parseHttpsUrl(
-        const std::string& url,
-        std::wstring& host,
-        std::wstring& path
+        const string& url,
+        wstring& host,
+        wstring& path
     ) {
-        const std::string prefix = "https://";
+        const string prefix = "https://";
 
         if (url.rfind(prefix, 0) != 0) {
-            throw std::runtime_error("Only HTTPS URLs are supported");
+            throw runtime_error("Only HTTPS URLs are supported");
         }
 
-        std::string withoutProtocol = url.substr(prefix.size());
+        string withoutProtocol = url.substr(prefix.size());
 
         size_t slashPos = withoutProtocol.find('/');
 
-        if (slashPos == std::string::npos) {
+        if (slashPos == string::npos) {
             host = toWideString(withoutProtocol);
             path = L"/";
             return;
@@ -62,9 +64,9 @@ namespace {
     }
 }
 
-std::string HttpClient::get(const std::string& url) const {
-    std::wstring host;
-    std::wstring path;
+string HttpClient::get(const string& url) const {
+    wstring host;
+    wstring path;
 
     parseHttpsUrl(url, host, path);
 
@@ -77,7 +79,7 @@ std::string HttpClient::get(const std::string& url) const {
     );
 
     if (!session) {
-        throw std::runtime_error("WinHttpOpen failed");
+        throw runtime_error("WinHttpOpen failed");
     }
 
     HINTERNET connection = WinHttpConnect(
@@ -89,7 +91,7 @@ std::string HttpClient::get(const std::string& url) const {
 
     if (!connection) {
         WinHttpCloseHandle(session);
-        throw std::runtime_error("WinHttpConnect failed");
+        throw runtime_error("WinHttpConnect failed");
     }
 
     HINTERNET request = WinHttpOpenRequest(
@@ -105,7 +107,7 @@ std::string HttpClient::get(const std::string& url) const {
     if (!request) {
         WinHttpCloseHandle(connection);
         WinHttpCloseHandle(session);
-        throw std::runtime_error("WinHttpOpenRequest failed");
+        throw runtime_error("WinHttpOpenRequest failed");
     }
 
     BOOL sendResult = WinHttpSendRequest(
@@ -122,7 +124,7 @@ std::string HttpClient::get(const std::string& url) const {
         WinHttpCloseHandle(request);
         WinHttpCloseHandle(connection);
         WinHttpCloseHandle(session);
-        throw std::runtime_error("WinHttpSendRequest failed");
+        throw runtime_error("WinHttpSendRequest failed");
     }
 
     BOOL receiveResult = WinHttpReceiveResponse(request, nullptr);
@@ -131,7 +133,7 @@ std::string HttpClient::get(const std::string& url) const {
         WinHttpCloseHandle(request);
         WinHttpCloseHandle(connection);
         WinHttpCloseHandle(session);
-        throw std::runtime_error("WinHttpReceiveResponse failed");
+        throw runtime_error("WinHttpReceiveResponse failed");
     }
 
     DWORD statusCode = 0;
@@ -150,10 +152,10 @@ std::string HttpClient::get(const std::string& url) const {
         WinHttpCloseHandle(request);
         WinHttpCloseHandle(connection);
         WinHttpCloseHandle(session);
-        throw std::runtime_error("HTTP error code: " + std::to_string(statusCode));
+        throw runtime_error("HTTP error code: " + to_string(statusCode));
     }
 
-    std::string response;
+    string response;
 
     while (true) {
         DWORD bytesAvailable = 0;
@@ -166,7 +168,7 @@ std::string HttpClient::get(const std::string& url) const {
             break;
         }
 
-        std::vector<char> buffer(bytesAvailable + 1, 0);
+        vector<char> buffer(bytesAvailable + 1, 0);
         DWORD bytesRead = 0;
 
         if (!WinHttpReadData(

@@ -5,29 +5,31 @@
 #include "exchange/CoinbaseClient.h"
 #include "exchange/KrakenClient.h"
 
-#include <windows.h>
-#include <clocale>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
+#include <windows.h>
+#include <clocale>
+
+using namespace std;
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
     setlocale(LC_ALL, "ru_RU.UTF-8");
 
-    std::string symbol;
+    string symbol;
 
-    std::cout << "Выберите актив:\n";
-    std::cout << "1. BTC-USDT\n";
-    std::cout << "2. ETH-USDT\n";
-    std::cout << "3. SOL-USDT\n";
-    std::cout << "Ваш выбор: ";
+    cout << "Выберите актив:\n";
+    cout << "1. BTC-USDT\n";
+    cout << "2. ETH-USDT\n";
+    cout << "3. SOL-USDT\n";
+    cout << "Ваш выбор: ";
 
-    int choice = 0;
-    std::cin >> choice;
+    int choice;
+    cin >> choice;
 
     if (choice == 1) {
         symbol = "BTC-USDT";
@@ -39,17 +41,17 @@ int main() {
         symbol = "SOL-USDT";
     }
     else {
-        std::cout << "Некорректный выбор актива.\n";
+        cout << "Некорректный выбор актива.\n";
         return 1;
     }
 
-    double simulationAmount = 1000.0;
+    double simulationAmount;
 
-    std::cout << "Введите сумму симуляции в USDT: ";
-    std::cin >> simulationAmount;
+    cout << "Введите сумму симуляции в USDT: ";
+    cin >> simulationAmount;
 
-    if (!std::cin || simulationAmount <= 0.0) {
-        std::cout << "Invalid amount. Amount must be greater than zero.\n";
+    if (!cin || simulationAmount <= 0.0) {
+        cout << "Некорректная сумма. Сумма должна быть больше нуля.\n";
         return 1;
     }
 
@@ -57,104 +59,96 @@ int main() {
     CoinbaseClient coinbase;
     KrakenClient kraken;
 
-    std::vector<Ticker> tickers;
+    vector<TokenPrice> prices;
 
-    tickers.push_back(binance.getTicker(symbol));
-    tickers.push_back(coinbase.getTicker(symbol));
-    tickers.push_back(kraken.getTicker(symbol));
+    prices.push_back(binance.getTicker(symbol));
+    prices.push_back(coinbase.getTicker(symbol));
+    prices.push_back(kraken.getTicker(symbol));
 
-    std::map<std::string, FeeConfig> fees;
+    map<string, FeeConfig> fees;
 
-    fees["Binance"] = FeeConfig{ 0.0 };    // demo mode: no fees
-    fees["Coinbase"] = FeeConfig{ 0.0 };   // demo mode: no fees
-    fees["Kraken"] = FeeConfig{ 0.0 };     // demo mode: no fees
+    fees["Binance"] = FeeConfig{ 0.0 };
+    fees["Coinbase"] = FeeConfig{ 0.0 };
+    fees["Kraken"] = FeeConfig{ 0.0 };
 
     SpreadCalculator calculator;
-    auto result = calculator.simulate(tickers, simulationAmount, fees);
+    auto result = calculator.simulate(prices, simulationAmount, fees);
 
-    std::cout << "Spread Radar\n\n";
+    cout << "Spread Radar\n\n";
 
-    std::cout << std::fixed << std::setprecision(2);
+    cout << fixed << setprecision(2);
 
-    std::cout << "Актив: " << symbol << "\n\n";
+    cout << "Актив: " << symbol << "\n\n";
 
-    std::cout << std::left
-        << std::setw(12) << "Биржа"
-        << std::right
-        << std::setw(15) << "Bid"
-        << std::setw(15) << "Ask"
+    cout << left
+        << setw(12) << "Биржа"
+        << right
+        << setw(15) << "Bid"
+        << setw(15) << "Ask"
         << "\n";
 
-    std::cout << std::string(42, '-') << "\n";
+    cout << string(42, '-') << "\n";
 
-    for (const auto& ticker : tickers) {
-        if (!ticker.ok) {
-            std::cout << std::left
-                << std::setw(12) << ticker.exchange
-                << "ОШИБКА: " << ticker.error << "\n";
+    for (const auto& TokenPrice : prices) {
+        if (!TokenPrice.ok) {
+            cout << left
+                << setw(12) << TokenPrice.site
+                << "ОШИБКА: " << TokenPrice.error << "\n";
             continue;
         }
 
-        std::cout << std::left
-            << std::setw(12) << ticker.exchange
-            << std::right
-            << std::setw(15) << ticker.bid
-            << std::setw(15) << ticker.ask
+        cout << left
+            << setw(12) << TokenPrice.site
+            << right
+            << setw(15) << TokenPrice.bid
+            << setw(15) << TokenPrice.ask
             << "\n";
     }
 
-    std::cout << "\n";
+    cout << "\n";
 
     if (!result.has_value()) {
-        std::cout << "Недостаточно данных для расчёта спреда.\n";
+        cout << "Недостаточно данных для расчёта спреда.\n";
         return 1;
     }
 
     const SimulationResult& simulation = result.value();
 
-    std::cout << "Лучший маршрут симуляции:\n";
+    cout << "Лучший маршрут симуляции:\n";
 
-    std::cout << "Купить на:  "
-        << simulation.buyExchange
+    cout << "Купить на:  "
+        << simulation.buySite
         << " по ask "
         << simulation.bestAsk
         << "\n";
 
-    std::cout << "Продать на: "
-        << simulation.sellExchange
+    cout << "Продать на: "
+        << simulation.sellSite
         << " по bid "
         << simulation.bestBid
         << "\n\n";
 
-    std::cout << "Спред:\n";
+    cout << "Спред:\n";
 
-    std::cout << "Абсолютный спред: "
+    cout << "Абсолютный спред: "
         << simulation.spreadAbs
         << " USDT\n";
 
-    std::cout << "Спред в процентах: "
+    cout << "Спред в процентах: "
         << simulation.spreadPct
         << "%\n\n";
 
-    std::cout << "Комиссии: не учитываются\n\n";
+    cout << "Комиссии: не учитываются\n\n";
 
-    std::cout << "Сумма симуляции: "
+    cout << "Сумма симуляции: "
         << simulation.startUSDT
         << " USDT\n";
 
-    std::cout << std::fixed << std::setprecision(2);
-
-    std::cout << "Прибыль без комиссий: "
+    cout << "Расчётная прибыль: "
         << simulation.rawProfit
         << " USDT ("
         << simulation.rawProfitPct
         << "%)\n";
-
-    std::cout << "Итоговая прибыль: "
-        << simulation.netProfit
-        << " USDT ("
-        << simulation.netProfitPct
-        << "%)\n\n";
 
     return 0;
 }

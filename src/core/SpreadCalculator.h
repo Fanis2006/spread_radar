@@ -2,7 +2,7 @@
 
 #include "core/FeeConfig.h"
 #include "core/SimulationResult.h"
-#include "core/Ticker.h"
+#include "core/TokenPrice.h"
 
 #include <map>
 #include <optional>
@@ -12,7 +12,7 @@
 class SpreadCalculator {
 public:
     std::optional<SimulationResult> simulate(
-        const std::vector<Ticker>& tickers,
+        const std::vector<TokenPrice>& prices,
         double usdtAmount,
         const std::map<std::string, FeeConfig>& fees
     ) const;

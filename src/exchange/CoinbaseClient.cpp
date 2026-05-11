@@ -5,40 +5,51 @@
 #include <exception>
 #include <string>
 
+using namespace std;
 using json = nlohmann::json;
 
-std::string CoinbaseClient::name() const {
+string CoinbaseClient::name() const {
     return "Coinbase";
 }
 
-Ticker CoinbaseClient::getTicker(const std::string& symbol) {
-    Ticker ticker;
-    ticker.exchange = name();
-    ticker.symbol = symbol;
+TokenPrice CoinbaseClient::getTicker(const string& token) {
+    TokenPrice price;
+    price.site = name();
+    price.token = token;
 
     try {
-        std::string coinbaseSymbol = symbol;
+        string coinbaseSymbol;
 
-        if (symbol == "BTC-USDT") {
+        if (token == "BTC-USDT") {
             coinbaseSymbol = "BTC-USDT";
         }
+        else if (token == "ETH-USDT") {
+            coinbaseSymbol = "ETH-USDT";
+        }
+        else if (token == "SOL-USDT") {
+            coinbaseSymbol = "SOL-USDT";
+        }
+        else {
+            price.ok = false;
+            price.error = "Unsupported token";
+            return price;
+        }
 
-        const std::string url =
+        const string url =
             "https://api.exchange.coinbase.com/products/" + coinbaseSymbol + "/ticker";
 
-        std::string response = httpClient.get(url);
+        string response = httpClient.get(url);
 
         json data = json::parse(response);
 
-        ticker.bid = std::stod(data.at("bid").get<std::string>());
-        ticker.ask = std::stod(data.at("ask").get<std::string>());
-        ticker.last = std::stod(data.at("price").get<std::string>());
-        ticker.ok = true;
+        price.bid = stod(data.at("bid").get<string>());
+        price.ask = stod(data.at("ask").get<string>());
+        price.ok = true;
     }
-    catch (const std::exception& e) {
-        ticker.ok = false;
-        ticker.error = e.what();
+    catch (const exception& e) {
+        price.ok = false;
+        price.error = e.what();
     }
 
-    return ticker;
+    return price;
 }

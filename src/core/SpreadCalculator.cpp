@@ -2,48 +2,50 @@
 
 #include <limits>
 
-std::optional<SimulationResult> SpreadCalculator::simulate(
-    const std::vector<Ticker>& tickers,
-    double usdtAmount,
-    const std::map<std::string, FeeConfig>& fees
-) const {
-    std::vector<Ticker> validTickers;
+using namespace std;
 
-    for (const auto& ticker : tickers) {
-        if (ticker.ok && ticker.bid > 0.0 && ticker.ask > 0.0) {
-            validTickers.push_back(ticker);
+optional<SimulationResult> SpreadCalculator::simulate(
+    const vector<TokenPrice>& prices,
+    double usdtAmount,
+    const map<string, FeeConfig>& fees
+) const {
+    vector<TokenPrice> validTickers;
+
+    for (const auto& TokenPrice : prices) {
+        if (TokenPrice.ok && TokenPrice.bid > 0.0 && TokenPrice.ask > 0.0) {
+            validTickers.push_back(TokenPrice);
         }
     }
 
     if (validTickers.size() < 2) {
-        return std::nullopt;
+        return nullopt;
     }
 
     bool foundPair = false;
     SimulationResult bestResult;
-    double bestNetProfit = -std::numeric_limits<double>::infinity();
+    double bestNetProfit = -numeric_limits<double>::infinity();
 
     for (const auto& buyTicker : validTickers) {
         for (const auto& sellTicker : validTickers) {
-            if (buyTicker.exchange == sellTicker.exchange) {
+            if (buyTicker.site == sellTicker.site) {
                 continue;
             }
 
             double buyFee = 0.001;
             double sellFee = 0.001;
 
-            if (fees.count(buyTicker.exchange) > 0) {
-                buyFee = fees.at(buyTicker.exchange).tradingFeePct;
+            if (fees.count(buyTicker.site) > 0) {
+                buyFee = fees.at(buyTicker.site).tradingFeePct;
             }
 
-            if (fees.count(sellTicker.exchange) > 0) {
-                sellFee = fees.at(sellTicker.exchange).tradingFeePct;
+            if (fees.count(sellTicker.site) > 0) {
+                sellFee = fees.at(sellTicker.site).tradingFeePct;
             }
 
             SimulationResult current;
 
-            current.buyExchange = buyTicker.exchange;
-            current.sellExchange = sellTicker.exchange;
+            current.buySite = buyTicker.site;
+            current.sellSite = sellTicker.site;
 
             current.bestAsk = buyTicker.ask;
             current.bestBid = sellTicker.bid;
@@ -79,7 +81,7 @@ std::optional<SimulationResult> SpreadCalculator::simulate(
     }
 
     if (!foundPair) {
-        return std::nullopt;
+        return nullopt;
     }
 
     return bestResult;

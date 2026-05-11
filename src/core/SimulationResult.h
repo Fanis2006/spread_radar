@@ -3,8 +3,8 @@
 #include <string>
 
 struct SimulationResult {
-    std::string buyExchange;
-    std::string sellExchange;
+    std::string buySite;
+    std::string sellSite;
 
     double bestAsk = 0.0;
     double bestBid = 0.0;

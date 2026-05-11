@@ -5,46 +5,51 @@
 #include <exception>
 #include <string>
 
+using namespace std;
 using json = nlohmann::json;
 
-std::string BinanceClient::name() const {
+string BinanceClient::name() const {
     return "Binance";
 }
 
-Ticker BinanceClient::getTicker(const std::string& symbol) {
-    Ticker ticker;
-    ticker.exchange = name();
-    ticker.symbol = symbol;
+TokenPrice BinanceClient::getTicker(const string& token) {
+    TokenPrice price;
+    price.site = name();
+    price.token = token;
 
     try {
-        std::string binanceSymbol = symbol;
+        string binanceSymbol;
 
-        if (symbol == "BTC-USDT") {
+        if (token == "BTC-USDT") {
             binanceSymbol = "BTCUSDT";
         }
-        else if (symbol == "ETH-USDT") {
+        else if (token == "ETH-USDT") {
             binanceSymbol = "ETHUSDT";
         }
-        else if (symbol == "SOL-USDT") {
+        else if (token == "SOL-USDT") {
             binanceSymbol = "SOLUSDT";
         }
+        else {
+            price.ok = false;
+            price.error = "Unsupported token";
+            return price;
+        }
 
-        const std::string url =
+        const string url =
             "https://api.binance.com/api/v3/ticker/bookTicker?symbol=" + binanceSymbol;
 
-        std::string response = httpClient.get(url);
+        string response = httpClient.get(url);
 
         json data = json::parse(response);
 
-        ticker.bid = std::stod(data.at("bidPrice").get<std::string>());
-        ticker.ask = std::stod(data.at("askPrice").get<std::string>());
-        ticker.last = 0.0;
-        ticker.ok = true;
+        price.bid = stod(data.at("bidPrice").get<string>());
+        price.ask = stod(data.at("askPrice").get<string>());
+        price.ok = true;
     }
-    catch (const std::exception& e) {
-        ticker.ok = false;
-        ticker.error = e.what();
+    catch (const exception& e) {
+        price.ok = false;
+        price.error = e.what();
     }
 
-    return ticker;
+    return price;
 }
